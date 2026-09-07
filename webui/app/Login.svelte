@@ -1,10 +1,13 @@
 <script>
+    import {onMount} from 'svelte';
     import {createApi} from '../client/api.mjs';
     let username = $state('');
     let password = $state('');
     let stayLoggedIn = $state(false);
     let busy = $state(false);
     let error = $state('');
+    let userInput;
+    onMount(() => { userInput.focus(); });
     async function login(event) {
         event.preventDefault();
         busy = true;
@@ -18,15 +21,23 @@
     }
 </script>
 
-<form class="panel panel-default" onsubmit={login}>
-    <div class="panel-heading"><h3 class="panel-title">Log In</h3></div>
-    <div class="panel-body">
-        {#if error}<p class="text-danger" role="alert">{error}</p>{/if}
-        <div class="form-group"><label for="username">Username</label>
-            <input id="username" class="form-control" autocomplete="username" bind:value={username}></div>
+<div class="center-block">
+    <h3>Authentication Required</h3>
+    <form onsubmit={login}>
+        <div class="form-group"><label for="user">User</label>
+            <input id="user" name="user" class="form-control" autocomplete="username"
+                bind:this={userInput} bind:value={username} required></div>
         <div class="form-group"><label for="password">Password</label>
-            <input id="password" class="form-control" type="password" autocomplete="current-password" bind:value={password}></div>
-        <label><input type="checkbox" bind:checked={stayLoggedIn}> Stay logged in</label>
-    </div>
-    <div class="panel-footer"><button class="btn btn-primary" type="submit" disabled={busy}>Log In</button></div>
-</form>
+            <input id="password" name="password" class="form-control" type="password"
+                autocomplete="current-password" bind:value={password}></div>
+        <div class="form-group"><label><input id="stayLoggedIn" type="checkbox"
+            bind:checked={stayLoggedIn}> Stay logged in</label></div>
+        <div class="row">
+            <div class="col-md-9 login-form-messages">
+                {#if error}<p class="text-danger" role="alert">{error}</p>{/if}
+            </div>
+            <div class="col-md-3 text-right"><button id="submit" class="btn btn-default"
+                type="submit" disabled={busy}>Log In</button></div>
+        </div>
+    </form>
+</div>
