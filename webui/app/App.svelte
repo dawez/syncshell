@@ -3,13 +3,16 @@
     import {createApi} from '../client/api.mjs';
     import {createSession, initialState} from '../client/session.mjs';
     import Folder from './Folder.svelte';
+    import Login from './Login.svelte';
 
     let state = $state(initialState());
     let session;
+    const authenticated = Boolean(window.metadata?.authenticated);
     const name = $derived(state.config.devices.find(device =>
         device.deviceID === state.system.myID)?.name || state.system.myID || 'Syncthing');
 
     onMount(() => {
+        if (!authenticated) return;
         session = createSession(createApi(), {publish: value => { state = value; },
             onAuthExpired: () => location.reload()});
         session.start();
@@ -25,6 +28,9 @@
     </div>
 </nav>
 <main class="container content">
+    {#if !authenticated}
+        <Login />
+    {:else}
     {#if state.error}
         <div class="alert alert-danger" role="alert">{state.error.message}</div>
     {/if}
@@ -43,4 +49,5 @@
             </section>
         </div>
     </div>
+    {/if}
 </main>
