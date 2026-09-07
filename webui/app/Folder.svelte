@@ -2,6 +2,10 @@
     import {folderStatus, folderClass, folderStateClass, folderStateDetails}
         from '../client/folders.mjs';
     import {compactNumber, unitPrefixed} from '../client/format.mjs';
+    import {stripeSections} from '../client/stripes.mjs';
+    import Tooltip from './Tooltip.svelte';
+    import Counts from './Counts.svelte';
+    function stripes(node) { return {destroy: stripeSections(node)}; }
 
     let {folder, info, stats, rescan} = $props();
     let open = $state(false);
@@ -13,7 +17,6 @@
     const color = $derived(folderStateClass(status));
     const details = $derived(folderStateDetails(folder, info));
     const summaries = $derived(details ? ['global', 'local'] : []);
-    const display = prefix => `${compactNumber(info?.[prefix + 'Files'])} · ${unitPrefixed(info?.[prefix + 'Bytes'], true)}B`;
     async function scan() {
         scanning = true;
         try { await rescan(); } catch {} finally { scanning = false; }
@@ -29,20 +32,25 @@
         </span>
     </button>
     {#if open}
-        <div class="panel-collapse"><div class="panel-body less-padding">
+        <div class="panel-collapse" use:stripes><div class="panel-body less-padding">
             <details class="folder-details" open>
                 <summary>Current activity</summary>
                 <table class="table table-condensed table-auto"><tbody>
                     {#if !folder.paused && info?.state}
                         <tr class="folder-state-summary">
-                            <th><span class="fas fa-fw fa-circle text-{color}" title={label}></span> Global/local State</th>
-                            <td class="text-right">{display('global')}</td>
+                            <th><Tooltip icon="fa fa-fw fa-circle text-{color}" label="Global/local State"
+                                text="{label}. Shows the global totals alongside the folder status. Separate rows show global and local contents when details are needed; ignore patterns can make the totals differ even when up to date." />&nbsp;Global/local State</th>
+                            <td class="text-right"><Counts {info} /></td>
                         </tr>
                         {#each summaries as prefix}
                             <tr class="folder-state-detail">
-                                <th><span class="fas fa-fw fa-{prefix === 'global' ? 'globe' : 'home'}"></span>
+                                <th><Tooltip icon="fas fa-fw fa-{prefix === 'global' ? 'globe' : 'home'}"
+                                    label={prefix === 'global' ? 'Global State' : 'Local State'}
+                                    text={prefix === 'global'
+                                        ? 'The latest known versions of files across the sharing devices. These totals describe the contents this folder would have when fully synchronized, before local ignore rules.'
+                                        : 'The files and data Syncthing currently tracks in this folder on this device. These totals can differ from the global contents during synchronization or because of ignore patterns.'} />&nbsp;
                                     {prefix === 'global' ? 'Global State' : 'Local State'}</th>
-                                <td class="text-right">{display(prefix)}</td>
+                                <td class="text-right"><Counts {info} {prefix} /></td>
                             </tr>
                         {/each}
                     {/if}
@@ -50,7 +58,8 @@
                         <tr><th>Out of Sync Items</th><td class="text-right">{compactNumber(info.needTotalItems)}</td></tr>
                     {/if}
                     {#if stats?.lastScan}
-                        <tr><th><span class="fas fa-fw fa-clock"></span> Last Scan</th>
+                        <tr><th><Tooltip icon="far fa-fw fa-clock" label="Last Scan"
+                            text="When Syncthing last scanned this folder for local changes. This is a scan timestamp, not the time of the last file transfer." />&nbsp;Last Scan</th>
                             <td class="text-right">{new Date(stats.lastScan).toLocaleString()}</td></tr>
                     {/if}
                 </tbody></table>
