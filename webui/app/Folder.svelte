@@ -139,6 +139,7 @@
                 <button class="btn btn-sm btn-default" disabled={scanning || !['idle', 'stopped', 'unshared', 'outofsync', 'faileditems', 'localadditions'].includes(status)} onclick={scan}>
                     <span class="fas fa-fw fa-refresh" aria-hidden="true"></span> {locale.t('Rescan')}
                 </button>
+                {#if folder.versioning?.type && folder.versioning.type !== 'external'}<button class="btn btn-sm btn-default" disabled={folder.paused} onclick={() => onAction({type: 'versions', folder})}><span aria-hidden="true" class="fas fa-undo"></span> {locale.t('Versions')}</button>{/if}
                 <button class="btn btn-sm btn-default" onclick={() => onAction({type: 'edit-folder', folder})}><span class="fas fa-pencil-alt"></span> {locale.t('Edit')}</button>
             </div>
         </div>

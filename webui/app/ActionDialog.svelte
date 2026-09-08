@@ -3,6 +3,7 @@
     import Dialog from './Dialog.svelte';
     import Editor from './Editor.svelte';
     import RemoteFiles from './RemoteFiles.svelte';
+    import RestoreVersions from './RestoreVersions.svelte';
     import {deviceName, sharedFolders, serviceHealth} from '../client/devices.mjs';
     import {timestamp} from '../client/format.mjs';
     let {action, state: snapshot, api, session, onClose} = $props();
@@ -19,6 +20,8 @@
 
 {#if action.type.startsWith('edit-') || action.type.startsWith('add-') || action.type === 'settings'}
     <Editor {action} state={snapshot} {api} {session} {onClose} />
+{:else if action.type === 'versions'}
+    <RestoreVersions {api} folder={action.folder} {onClose} />
 {:else if action.type === 'about'}
     <Dialog title="About" icon="fas fa-info-circle" {onClose}>
         <h3>Syncshell Modern / Omarchy UI</h3>
