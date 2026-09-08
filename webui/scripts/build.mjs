@@ -7,15 +7,15 @@ const root = resolve(import.meta.dirname, '..');
 const shipped = resolve(root, 'modern'), output = resolve(root, 'dist');
 await rm(output, {recursive: true, force: true});
 await build({configFile: false, root, build: {
-    outDir: 'dist/compiled', target: 'es2022',
+    outDir: 'dist/assets/compiled', target: 'es2022',
     lib: {entry: 'app/main.js', formats: ['es'], fileName: () => 'conflicts.js', cssFileName: 'conflicts'},
 }});
 // Keep the same Angular release, using its official production distribution.
 const angular = await readFile(resolve(root, 'node_modules/angular/angular.min.js'), 'utf8');
 await writeFile(resolve(shipped, 'vendor/angular/angular.js'),
     angular.replace(/\/\/# sourceMappingURL=.*$/m, '').trimEnd() + '\n');
-await rm(resolve(shipped, 'compiled'), {recursive: true, force: true});
-await cp(resolve(output, 'compiled'), resolve(shipped, 'compiled'), {recursive: true});
+await rm(resolve(shipped, 'assets/compiled'), {recursive: true, force: true});
+await cp(resolve(output, 'assets/compiled'), resolve(shipped, 'assets/compiled'), {recursive: true});
 await cp(resolve(root, 'index.html'), resolve(shipped, 'index.html'));
 await cp(shipped, output, {recursive: true});
 await cp(resolve(root, 'LICENSE.syncthing'), resolve(output, 'LICENSE.syncthing'));

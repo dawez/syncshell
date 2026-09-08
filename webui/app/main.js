@@ -163,6 +163,7 @@ async function load(scan = false, group = null) {
     finally { state.loading = false; }
 }
 angular.element(document).ready(() => {
+    if (!window.metadata?.authenticated) return;
     const injector = angular.element(document.documentElement).injector(), translate = injector.get('$translate');
     const updateLanguage = () => { t = conflictTranslator({language: translate.use() || 'en', t: value => translate.instant(value)}); mount(); renderRows(); };
     updateLanguage();

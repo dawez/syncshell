@@ -347,6 +347,7 @@ async function M(e = !1, t = null) {
 	}
 }
 angular.element(document).ready(() => {
+	if (!window.metadata?.authenticated) return;
 	let e = angular.element(document.documentElement).injector(), t = e.get("$translate"), n = () => {
 		y = g({
 			language: t.use() || "en",

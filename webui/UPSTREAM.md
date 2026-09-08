@@ -8,7 +8,7 @@ The inherited templates/controller remain under modern/syncthing. The main
 page template is index.html. app/main.js contains the conflict interface;
 client contains its framework-independent API and conflict helpers. Build
 using npm ci and npm run build. The build publishes modern/index.html and
-modern/compiled and updates SHA256SUMS. End users need no Node process.
+modern/assets/compiled and updates SHA256SUMS. End users need no Node process.
 
 AngularJS stays at 1.3.20, the version shipped in the reference. Its official
 minified npm distribution replaces the oversized raw vendor file. The raw
