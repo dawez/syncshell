@@ -14,10 +14,11 @@
     import ItemsDialog from './ItemsDialog.svelte';
     function stripes(node) { return {destroy: stripeSections(node)}; }
     const locale = getContext('locale');
-    let {folder, info, stats, progress, api, rescan} = $props();
+    let {folder, info, stats, progress, api, rescan, state: snapshot, session, onAction} = $props();
     let open = $state(false);
     let scanning = $state(false);
     let itemsKind = $state('');
+    let sharingOpen = $state(false);
     const status = $derived(folderStatus(folder, info));
     const label = $derived(folderStatusText(status));
     const color = $derived(folderStateClass(status));
@@ -57,7 +58,9 @@
                     {#if !folder.paused && info?.state}
                         <tr class="folder-state-summary">
                             <th><Tooltip icon="fa fa-fw fa-circle text-{color}" label="Global/local State"
-                                prefix={label} text={fieldHelp['Global/local State'].help} />&nbsp;<span>{locale.t('Global/local State')}</span></th>
+                                prefix={label} text={fieldHelp['Global/local State'].help} />&nbsp;<span>{locale.t('Global/local State')}</span>
+                                {#if info.ignorePatterns}<a href="#ignores" title={locale.t('Reduced by ignore patterns')} onclick={event => { event.preventDefault(); onAction({type: 'edit-folder', folder, tab: 'ignores'}); }}><span class="fas fa-info-circle"></span></a>{/if}
+                            </th>
                             <td class="text-right"><Counts {info} /></td>
                         </tr>
                     {/if}
@@ -125,9 +128,18 @@
             </details>
         </div>
             <div class="panel-footer folder-actions">
+                <div class="dropdown folder-sharing pull-left" class:open={sharingOpen}>
+                    <button class="btn btn-sm btn-default dropdown-toggle" aria-expanded={sharingOpen} disabled={!folder.devices.some(device => device.deviceID !== snapshot.system.myID)} onclick={() => { sharingOpen = !sharingOpen; }}><span class="fas fa-share-alt"></span> {locale.t('Shared')} <span class="caret"></span></button>
+                    <ul class="dropdown-menu">{#each folder.devices.filter(device => device.deviceID !== snapshot.system.myID) as member}
+                        {@const device = snapshot.config.devices.find(item => item.deviceID === member.deviceID)}
+                        <li><a href="#edit-device" onclick={event => { event.preventDefault(); sharingOpen = false; if (device) onAction({type: 'edit-device', device}); }}>{device?.name || member.deviceID.slice(0, 7)}</a></li>
+                    {/each}</ul>
+                </div>
+                <button class="btn btn-sm btn-default" onclick={() => session.setPaused('folders', folder.id, !folder.paused).catch(() => {})}><span class="fas fa-{folder.paused ? 'play' : 'pause'}"></span> {locale.t(folder.paused ? 'Resume' : 'Pause')}</button>
                 <button class="btn btn-sm btn-default" disabled={scanning || !['idle', 'stopped', 'unshared', 'outofsync', 'faileditems', 'localadditions'].includes(status)} onclick={scan}>
                     <span class="fas fa-fw fa-refresh" aria-hidden="true"></span> {locale.t('Rescan')}
                 </button>
+                <button class="btn btn-sm btn-default" onclick={() => onAction({type: 'edit-folder', folder})}><span class="fas fa-pencil-alt"></span> {locale.t('Edit')}</button>
             </div>
         </div>
     {/if}

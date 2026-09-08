@@ -24,7 +24,7 @@
 </script>
 
 <li bind:this={root} class:open class="dropdown" >
-    <a href="#language" class="dropdown-toggle" onkeydown={key} aria-expanded={open} aria-haspopup="true"
+    <a href="#language" class="dropdown-toggle" aria-label="Language" onkeydown={key} aria-expanded={open} aria-haspopup="true"
         onclick={event => { event.preventDefault(); open = !open; }}>
         <span class="fas fa-globe"></span><span class="hidden-xs">&nbsp;{window.langPrettyprint[locale.language] || 'English'}</span> <span class="caret"></span>
     </a>
