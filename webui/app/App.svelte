@@ -97,17 +97,20 @@
                 <li><a href="#settings" onclick={event => { event.preventDefault(); openAction({type: 'settings'}); }}>{locale.t('Settings')}</a></li>
                 <li><a href="#advanced" onclick={event => { event.preventDefault(); openAction({type: 'advanced'}); }}>{locale.t('Advanced')}</a></li>
                 <li><a href="#identification" onclick={event => { event.preventDefault(); openAction({type: 'identification', device: self}); }}>{locale.t('Show ID')}</a></li>
+                <li><a href="#logs" onclick={event => { event.preventDefault(); openAction({type: 'logs'}); }}>{locale.t('Logs')}</a></li>
+                {#if state.upgradeInfo?.newer}<li><a href="#upgrade" onclick={event => { event.preventDefault(); openAction({type: 'upgrade'}); }}>{locale.t('Upgrade')} {state.upgradeInfo.latest}</a></li>{/if}
                 <li><a href="rest/debug/support" target="_blank">{locale.t('Support Bundle')}</a></li>
                 {#if state.config.gui?.user || state.config.gui?.authMode === 'ldap'}<li><a href="#logout" onclick={async event => { event.preventDefault(); await api.post('noauth/auth/logout', {}); location.reload(); }}>{locale.t('Log Out')}</a></li>{/if}
-                <li><a href="#restart" onclick={event => { event.preventDefault(); menu = ''; perform(session.systemAction('restart')); }}>{locale.t('Restart')}</a></li>
-                <li><a href="#shutdown" onclick={event => { event.preventDefault(); menu = ''; perform(session.systemAction('shutdown')); }}>{locale.t('Shut Down')}</a></li>
+                <li><a href="#restart" onclick={event => { event.preventDefault(); openAction({type: 'restart'}); }}>{locale.t('Restart')}</a></li>
+                <li><a href="#shutdown" onclick={event => { event.preventDefault(); openAction({type: 'shutdown'}); }}>{locale.t('Shut Down')}</a></li>
             </ul>
         </li>{/if}
     </ul>
 </div></nav>
 <main class="container content">
     {#if !authenticated}<Login />{:else}
-        {#if state.error}<div class="alert alert-danger" role="alert">{state.error.message}</div>{/if}
+        {#if state.error && !['restart', 'shutdown', 'upgrade'].includes(action?.type)}<div class="alert alert-danger" role="alert">{state.error.message}</div>{/if}
+        {#if !state.configInSync}<div class="alert alert-warning">{locale.t('Restart Needed')} <button class="btn btn-default btn-sm" onclick={() => openAction({type: 'restart'})}>{locale.t('Restart')}</button></div>{/if}
         {#if !state.ready}<p role="status">{locale.t('Loading data...')}</p>{/if}
         <div class="dashboard">
             <ul class="nav nav-tabs dashboard-tabs" role="tablist" onkeydown={tabKey}>

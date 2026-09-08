@@ -1,6 +1,8 @@
 <script>
     import {getContext} from 'svelte';
     import Dialog from './Dialog.svelte';
+    import ServiceDialog from './ServiceDialog.svelte';
+    import Logs from './Logs.svelte';
     import Editor from './Editor.svelte';
     import Settings from './Settings.svelte';
     import ConfirmAction from './ConfirmAction.svelte';
@@ -20,7 +22,11 @@
     async function copyID() { await navigator.clipboard.writeText(action.device.deviceID); copied = true; }
 </script>
 
-{#if action.type === 'settings' || action.type === 'advanced'}
+{#if ['restart', 'shutdown', 'upgrade'].includes(action.type)}
+    <ServiceDialog kind={action.type} state={snapshot} {session} {onClose} />
+{:else if action.type === 'logs'}
+    <Logs {api} {onClose} />
+{:else if action.type === 'settings' || action.type === 'advanced'}
     <Settings state={snapshot} {api} {session} {onClose} advanced={action.type === 'advanced'} />
 {:else if action.type.startsWith('edit-') || action.type.startsWith('add-')}
     <Editor {action} state={snapshot} {api} {session} {onClose} />
