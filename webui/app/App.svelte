@@ -147,7 +147,7 @@
                         </div>
                     </section>
                 </div>
-                <div id="dashboard-conflicts" class="tab-pane" class:active={activeTab === 'conflicts'} role="tabpanel" tabindex="0" aria-labelledby="conflicts-tab"><Conflicts {api} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></div>
+                <div id="dashboard-conflicts" class="tab-pane" class:active={activeTab === 'conflicts'} role="tabpanel" tabindex="0" aria-labelledby="conflicts-tab"><Conflicts {api} hostActions={window.syncshellHostActions || null} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></div>
                 <div id="dashboard-notifications" class="tab-pane notifications" class:active={activeTab === 'notifications'} role="tabpanel" tabindex="0" aria-labelledby="notifications-tab"><Notifications {cards} {session} onAction={openAction} /></div>
             </div>
         </div>

@@ -14,9 +14,10 @@
     let controller;
     const visible = $derived(groups.filter(group => [group.folderName, group.path, ...group.copies.map(file => file.path)]
         .some(value => value.toLocaleLowerCase().includes(search.toLocaleLowerCase()))));
+    const enabled = $derived(active && ready);
     const folderKey = $derived(folders.map(folder => folder.id).join('|'));
     $effect(() => {
-        if (!active || !ready) return;
+        if (!enabled) return;
         folderKey;
         const request = new AbortController(); controller = request;
         untrack(() => load(false, null, request));
@@ -103,6 +104,6 @@
         <strong>{t('From')}:</strong><p class="review-confirm-path">{rename.group.root}/{rename.file.path}</p>
         <strong>{t('To')}:</strong><p class="review-confirm-path">{rename.group.root}/{rename.group.path}</p>
         {#each errors as error}<p class="text-danger" role="alert">{error}</p>{/each}
-        {#snippet footer()}<button class="btn btn-default" disabled={loading} onclick={() => { rename = null; }}>{t('Cancel')}</button><button class="btn btn-default text-warning" disabled={loading} onclick={restore}>{t('Rename')}</button>{/snippet}
+        {#snippet footer()}<button class="btn btn-default" disabled={loading} onclick={() => { rename = null; }}>{t('Cancel')}</button><button class="btn btn-default" disabled={loading} onclick={restore}><span class="text-warning">{t('Rename')}</span></button>{/snippet}
     </Dialog>
 {/if}
