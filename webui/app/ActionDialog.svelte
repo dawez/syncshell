@@ -45,6 +45,8 @@
     </Dialog>
 {:else if action.type === 'listeners' || action.type === 'discovery'}
     <Dialog title={action.type === 'listeners' ? health.failed.length ? 'Listener Failures' : 'Listener Status' : health.failed.length ? 'Discovery Failures' : 'Discovery Status'} status={health.failed.length ? 'danger' : 'default'} icon="fas fa-sitemap" {onClose}>
+        {#if action.type === 'listeners'}<p>{locale.t(health.running ? 'Syncthing is listening on the following network addresses for connection attempts from other devices:' : 'Syncthing is not listening for connection attempts from other devices on any address.  Only outgoing connections from this device may work.')}</p>
+        {:else}<p>{locale.t(health.running ? 'The following methods are used to discover other devices on the network and announce this device to be found by others:' : 'This device cannot automatically discover other devices or announce its own address to be found by others.  Only devices with statically configured addresses can connect.')}</p><p>{locale.t('Failure to connect to IPv6 servers is expected if there is no IPv6 connectivity.')}</p>{/if}
         {#each health.entries as [name, value]}<h5>{name}</h5><dl>
             {#each Object.entries(value || {}) as [key, item]}<dt>{key}</dt><dd class:text-danger={key === 'error'}>{Array.isArray(item) ? item.join(', ') : typeof item === 'object' ? JSON.stringify(item) : item}</dd>{/each}
         </dl>{/each}
