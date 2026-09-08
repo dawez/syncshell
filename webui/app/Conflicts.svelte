@@ -11,6 +11,7 @@
     const t = $derived(conflictTranslator(locale));
     let groups = $state([]), search = $state(''), selected = $state({});
     let loading = $state(false), errors = $state([]), message = $state(''), rename = $state(null);
+    let scanning = $state(null);
     let controller;
     const visible = $derived(groups.filter(group => [group.folderName, group.path, ...group.copies.map(file => file.path)]
         .some(value => value.toLocaleLowerCase().includes(search.toLocaleLowerCase()))));
@@ -25,7 +26,7 @@
     });
     const chosen = group => group.copies.find(file => file.path === selected[group.id]) || group.copies[0];
     async function load(scan = false, group = null, request = controller) {
-        loading = true; errors = []; message = '';
+        loading = true; scanning = scan ? group?.id || 'all' : null; errors = []; message = '';
         try {
             const result = scan ? await recheckConflicts(api, folders, group, request.signal)
                 : await listConflicts(api, folders, request.signal);
@@ -34,7 +35,7 @@
             errors = result.errors;
             if (scan && !errors.length) message = 'Syncthing scan finished; file list updated.';
         } catch (error) { if (!request.signal.aborted) errors = [error.message]; }
-        finally { if (!request.signal.aborted) loading = false; }
+        finally { if (!request.signal.aborted) { loading = false; scanning = null; } }
     }
     async function open(group, file) {
         try { await hostActions.open(group, file); } catch (error) { errors = [error.message]; }
@@ -65,7 +66,7 @@
     <h3>{t('Review in your file manager')}</h3>
     <div class="review-tools">
         <input type="search" class="form-control input-sm review-search" placeholder={t('Search filenames or paths')} aria-label={t('Search filenames or paths')} bind:value={search} />
-        <button class="btn btn-default review-recheck" disabled={loading} onclick={() => load(true)}><span aria-hidden="true" class="fas fa-refresh"></span> {t('Recheck all files')}</button>
+        <button class="btn btn-default review-recheck" disabled={loading} aria-busy={scanning === 'all'} onclick={() => load(true)}><span class:text-warning={scanning === 'all'}><span aria-hidden="true" class="fas fa-refresh" class:fa-spin={scanning === 'all'}></span> {t('Recheck all files')}</span></button>
     </div>
     {#if loading}<p role="status">{t('Loading data...')}</p>{/if}
     {#if message}<p class="review-message" role="status">{t(message)}</p>{/if}
@@ -91,7 +92,7 @@
                 </td>
                 <td class="review-actions">
                     <button class="btn btn-default" disabled={!hostActions || loading} title={!hostActions ? t(hostActionHelp) : undefined} onclick={() => open(group)}><span aria-hidden="true" class="fas fa-folder-open"></span> {t('Open folder')}</button>
-                    <button class="btn btn-default" disabled={loading} onclick={() => load(true, group)}><span aria-hidden="true" class="fas fa-refresh"></span> {t('Recheck files in folder')}</button>
+                    <button class="btn btn-default" disabled={loading} aria-busy={scanning === group.id} onclick={() => load(true, group)}><span class:text-warning={scanning === group.id}><span aria-hidden="true" class="fas fa-refresh" class:fa-spin={scanning === group.id}></span> {t('Recheck files in folder')}</span></button>
                 </td>
             </tr>
         {/each}</tbody>
