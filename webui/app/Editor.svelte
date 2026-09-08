@@ -1,6 +1,7 @@
 <script>
     import {getContext, onMount, untrack} from 'svelte';
     import Dialog from './Dialog.svelte';
+    import ConfirmAction from './ConfirmAction.svelte';
     import {copy, getValue, setValue, editorFields, inputValue, changedValue, saveEditor, ignoreLines} from '../client/edit.mjs';
     import {deviceName} from '../client/devices.mjs';
     let {action, state: snapshot, api, session, onClose, onSaved} = $props();
@@ -10,6 +11,7 @@
     const isNew = untrack(() => action.type.startsWith('add'));
     let draft = $state(copy(untrack(() => action[kind])));
     let tab = $state(untrack(() => action.tab === 'sharing' ? 'Sharing' : action.tab === 'ignores' ? 'Ignore Patterns' : 'General'));
+    let removing = $state(false);
     let error = $state('');
     let busy = $state(false);
     let addIgnores = $state(true);
@@ -83,6 +85,7 @@
 </script>
 
 {#snippet footer()}
+    {#if !defaults && !isNew && stage === 'edit' && draft.deviceID !== snapshot.system.myID}<button class="btn btn-warning btn-sm pull-left" disabled={busy} onclick={() => { removing = true; }}>{locale.t('Remove')}</button>{/if}
     <button class="btn btn-primary btn-sm" disabled={busy || (stage === 'ignores' && !loadedIgnores)} onclick={save}><span class="fas fa-check"></span>&nbsp;{locale.t('Save')}</button>
     <button class="btn btn-default btn-sm" disabled={busy} onclick={cancel}><span class="fas fa-times"></span>&nbsp;{locale.t('Cancel')}</button>
 {/snippet}
@@ -143,3 +146,4 @@
     </form>
 </Dialog>
 
+{#if removing}<ConfirmAction action={{type: 'remove-' + kind, [kind]: draft}} {api} {session} devices={snapshot.config.devices} onClose={() => { removing = false; }} onDone={onClose} />{/if}

@@ -1,4 +1,5 @@
 <script>
+    import {recoveryActions, managementActions} from '../client/management.mjs';
     import {getContext} from 'svelte';
     import {folderStatus, folderClass, folderStateClass, folderStateDetails, syncPercentage, progressPercentage}
         from '../client/folders.mjs';
@@ -128,6 +129,7 @@
             </details>
         </div>
             <div class="panel-footer folder-actions">
+                {#each recoveryActions(folder, info, status) as type}<button class="btn btn-danger btn-sm" onclick={() => onAction({type, folder})}>{locale.t(managementActions[type].title)}</button>{/each}
                 <div class="dropdown folder-sharing pull-left" class:open={sharingOpen}>
                     <button class="btn btn-sm btn-default dropdown-toggle" aria-expanded={sharingOpen} disabled={!folder.devices.some(device => device.deviceID !== snapshot.system.myID)} onclick={() => { sharingOpen = !sharingOpen; }}><span class="fas fa-share-alt"></span> {locale.t('Shared')} <span class="caret"></span></button>
                     <ul class="dropdown-menu">{#each folder.devices.filter(device => device.deviceID !== snapshot.system.myID) as member}

@@ -3,6 +3,7 @@
     import Dialog from './Dialog.svelte';
     import Editor from './Editor.svelte';
     import Settings from './Settings.svelte';
+    import ConfirmAction from './ConfirmAction.svelte';
     import RemoteFiles from './RemoteFiles.svelte';
     import RestoreVersions from './RestoreVersions.svelte';
     import {deviceName, sharedFolders, serviceHealth} from '../client/devices.mjs';
@@ -23,6 +24,8 @@
     <Settings state={snapshot} {api} {session} {onClose} advanced={action.type === 'advanced'} />
 {:else if action.type.startsWith('edit-') || action.type.startsWith('add-')}
     <Editor {action} state={snapshot} {api} {session} {onClose} />
+{:else if ['override', 'revert'].includes(action.type)}
+    <ConfirmAction {action} {api} {session} {onClose} onDone={onClose} />
 {:else if action.type === 'versions'}
     <RestoreVersions {api} folder={action.folder} {onClose} />
 {:else if action.type === 'about'}
