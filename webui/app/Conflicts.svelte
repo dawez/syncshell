@@ -66,7 +66,7 @@
     <h3>{t('Review in your file manager')}</h3>
     <div class="review-tools">
         <input type="search" class="form-control input-sm review-search" placeholder={t('Search filenames or paths')} aria-label={t('Search filenames or paths')} bind:value={search} />
-        <button class="btn btn-default review-recheck" disabled={loading} aria-busy={scanning === 'all'} onclick={() => load(true)}><span class:text-warning={scanning === 'all'}><span aria-hidden="true" class="fas fa-refresh" class:fa-spin={scanning === 'all'}></span> {t('Recheck all files')}</span></button>
+        <button class="btn btn-default review-recheck" disabled={loading} aria-busy={scanning === 'all'} onclick={() => load(true)}><span class:text-warning={scanning === 'all'} class:review-rechecking={scanning === 'all'}><span aria-hidden="true" class="fas fa-refresh" class:fa-spin={scanning === 'all'}></span> {t('Recheck all files')}</span></button>
     </div>
     {#if loading}<p role="status">{t('Loading data...')}</p>{/if}
     {#if message}<p class="review-message" role="status">{t(message)}</p>{/if}
@@ -92,7 +92,7 @@
                 </td>
                 <td class="review-actions">
                     <button class="btn btn-default" disabled={!hostActions || loading} title={!hostActions ? t(hostActionHelp) : undefined} onclick={() => open(group)}><span aria-hidden="true" class="fas fa-folder-open"></span> {t('Open folder')}</button>
-                    <button class="btn btn-default" disabled={loading} aria-busy={scanning === group.id} onclick={() => load(true, group)}><span class:text-warning={scanning === group.id}><span aria-hidden="true" class="fas fa-refresh" class:fa-spin={scanning === group.id}></span> {t('Recheck files in folder')}</span></button>
+                    <button class="btn btn-default" disabled={loading} aria-busy={scanning === group.id} onclick={() => load(true, group)}><span class:text-warning={scanning === group.id} class:review-rechecking={scanning === group.id}><span aria-hidden="true" class="fas fa-refresh" class:fa-spin={scanning === group.id}></span> {t('Recheck files in folder')}</span></button>
                 </td>
             </tr>
         {/each}</tbody>
