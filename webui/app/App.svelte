@@ -11,6 +11,7 @@
     import LanguageMenu from './LanguageMenu.svelte';
     import Notifications from './Notifications.svelte';
     import ActionDialog from './ActionDialog.svelte';
+    import Conflicts from './Conflicts.svelte';
     let state = $state(initialState());
     const api = createApi();
     const languages = createLocale(api);
@@ -138,7 +139,7 @@
                         </div>
                     </section>
                 </div>
-                <div id="dashboard-conflicts" class="tab-pane" class:active={activeTab === 'conflicts'} role="tabpanel" tabindex="0" aria-labelledby="conflicts-tab"><h3>{locale.t('Resolve sync conflicts')}</h3><p>{locale.t('Sync conflict resolution is not available yet.')}</p></div>
+                <div id="dashboard-conflicts" class="tab-pane" class:active={activeTab === 'conflicts'} role="tabpanel" tabindex="0" aria-labelledby="conflicts-tab"><Conflicts {api} folders={state.config.folders} ready={state.ready} active={activeTab === 'conflicts'} /></div>
                 <div id="dashboard-notifications" class="tab-pane notifications" class:active={activeTab === 'notifications'} role="tabpanel" tabindex="0" aria-labelledby="notifications-tab"><Notifications {cards} {session} onAction={openAction} /></div>
             </div>
         </div>
