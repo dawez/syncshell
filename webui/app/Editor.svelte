@@ -3,11 +3,12 @@
     import Dialog from './Dialog.svelte';
     import {copy, getValue, setValue, editorFields, inputValue, changedValue, saveEditor, ignoreLines} from '../client/edit.mjs';
     import {deviceName} from '../client/devices.mjs';
-    let {action, state: snapshot, api, session, onClose} = $props();
+    let {action, state: snapshot, api, session, onClose, onSaved} = $props();
     const locale = getContext('locale');
-    const kind = untrack(() => action.type.includes('device') ? 'device' : action.type.includes('folder') ? 'folder' : 'settings');
+    const kind = untrack(() => action.type.includes('device') ? 'device' : 'folder');
+    const defaults = untrack(() => !!action.defaults);
     const isNew = untrack(() => action.type.startsWith('add'));
-    let draft = $state(copy(untrack(() => kind === 'settings' ? snapshot.config : action[kind])));
+    let draft = $state(copy(untrack(() => action[kind])));
     let tab = $state(untrack(() => action.tab === 'sharing' ? 'Sharing' : action.tab === 'ignores' ? 'Ignore Patterns' : 'General'));
     let error = $state('');
     let busy = $state(false);
@@ -22,11 +23,13 @@
         const member = folder.devices.find(device => device.deviceID === draft.deviceID);
         return [folder.id, {selected: !!member, password: member?.encryptionPassword || ''}];
     }))));
-    const tabs = kind === 'settings' ? ['General', 'GUI', 'Connections'] : kind === 'folder'
-        ? ['General', 'Sharing', 'File Versioning', 'Ignore Patterns', 'Advanced'] : ['General', 'Sharing', 'Advanced'];
-    const fields = $derived(editorFields(kind, tab, snapshot.config, snapshot.system.myID));
-    const title = kind === 'settings' ? 'Settings' : (isNew ? 'Add ' : 'Edit ') + (kind === 'folder' ? 'Folder' : 'Device');
+    const tabs = (kind === 'folder' ? ['General', 'Sharing', 'File Versioning', 'Ignore Patterns', 'Advanced'] : ['General', 'Sharing', 'Advanced']).filter(name => !defaults || name !== 'Sharing');
+    const fields = $derived(editorFields(kind, tab, snapshot.config, snapshot.system.myID).filter(field => !defaults || !['id', 'deviceID'].includes(field.path)));
+    const title = defaults ? 'Edit ' + (kind === 'folder' ? 'Folder' : 'Device') + ' Defaults' : (isNew ? 'Add ' : 'Edit ') + (kind === 'folder' ? 'Folder' : 'Device');
     onMount(() => {
+        if (defaults && kind === 'folder') {
+            originalIgnores = snapshot.config.defaults.ignores.lines; ignores = originalIgnores.join('\n'); loadedIgnores = true; return;
+        }
         if (kind === 'folder' && !isNew && draft.type !== 'receiveencrypted') {
             api.get('db/ignores', {folder: draft.id}).then(data => {
                 originalIgnores = data.ignore || [];
@@ -44,14 +47,16 @@
         if (!form.reportValidity()) return;
         busy = true; error = '';
         try {
-            if (stage === 'ignores') {
+            if (defaults) {
+                await saveEditor({session, api, state: snapshot, kind, draft, isNew, shares, defaults, ignores: ignoreLines(ignores)});
+            } else if (stage === 'ignores') {
                 await api.post('db/ignores', {ignore: ignoreLines(ignores)}, {folder: draft.id});
                 await session.setPaused('folders', draft.id, !!draft.paused);
             } else if (kind === 'folder' && isNew && addIgnores && draft.type !== 'receiveencrypted') {
                 await saveEditor({session, api, state: snapshot, kind, draft: {...copy(draft), paused: true}, isNew, shares});
                 stage = 'ignores'; tab = 'Ignore Patterns';
                 const data = await api.get('db/ignores', {folder: draft.id});
-                originalIgnores = data.ignore?.length ? data.ignore : snapshot.config.defaults?.ignores?.lines || [];
+                originalIgnores = (data.ignore?.length || data.error) ? data.ignore || [] : snapshot.config.defaults?.ignores?.lines || [];
                 ignores = originalIgnores.join('\n'); loadedIgnores = true;
                 if (data.error) error = data.error;
                 return;
@@ -60,11 +65,12 @@
                     await api.post('db/ignores', {ignore: ignoreLines(ignores)}, {folder: draft.id});
                 await saveEditor({session, api, state: snapshot, kind, draft, isNew, shares});
             }
-            saved = true; onClose();
+            saved = true; onSaved?.(copy(draft), ignoreLines(ignores)); onClose();
         } catch (failure) { error = failure.message; }
         finally { busy = false; }
     }
     async function cancel() {
+        if (busy) return;
         if (!saved && stage === 'ignores' && loadedIgnores) {
             saved = true;
             try {
@@ -120,8 +126,8 @@
                             {#each field.options as [value, label]}<option {value}>{locale.t(label)}</option>{/each}
                         </select>
                         {:else}<input id={'editor-' + field.path} class="form-control" type={field.type === 'list' ? 'text' : field.type}
-                            value={inputValue(draft, field)} readonly={!isNew && ['id', 'path', 'deviceID'].includes(field.path)}
-                            required={['id', 'path', 'deviceID'].includes(field.path)} min={field.type === 'number' ? 0 : undefined}
+                            value={inputValue(draft, field)} readonly={!isNew && !defaults && ['id', 'path', 'deviceID'].includes(field.path)}
+                            required={!defaults && ['id', 'path', 'deviceID'].includes(field.path)} step={field.path.endsWith('.value') ? '0.01' : undefined} min={field.type === 'number' ? 0 : undefined}
                             oninput={event => { draft = setValue(draft, field.path, changedValue(field, event.currentTarget)); }}>{/if}
                     {/if}
                 </div>
@@ -136,3 +142,4 @@
         </div>
     </form>
 </Dialog>
+

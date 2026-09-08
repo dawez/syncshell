@@ -95,6 +95,7 @@
         {#if authenticated}<li class="dropdown action-menu" class:open={menu === 'actions'}><a href="#actions" class="dropdown-toggle" aria-expanded={menu === 'actions'} onclick={event => { event.preventDefault(); menu = menu === 'actions' ? '' : 'actions'; }}><span class="fas fa-cog"></span> {locale.t('Actions')} <span class="caret"></span></a>
             <ul class="dropdown-menu">
                 <li><a href="#settings" onclick={event => { event.preventDefault(); openAction({type: 'settings'}); }}>{locale.t('Settings')}</a></li>
+                <li><a href="#advanced" onclick={event => { event.preventDefault(); openAction({type: 'advanced'}); }}>{locale.t('Advanced')}</a></li>
                 <li><a href="#identification" onclick={event => { event.preventDefault(); openAction({type: 'identification', device: self}); }}>{locale.t('Show ID')}</a></li>
                 <li><a href="rest/debug/support" target="_blank">{locale.t('Support Bundle')}</a></li>
                 {#if state.config.gui?.user || state.config.gui?.authMode === 'ldap'}<li><a href="#logout" onclick={async event => { event.preventDefault(); await api.post('noauth/auth/logout', {}); location.reload(); }}>{locale.t('Log Out')}</a></li>{/if}

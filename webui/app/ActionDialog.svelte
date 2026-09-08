@@ -2,6 +2,7 @@
     import {getContext} from 'svelte';
     import Dialog from './Dialog.svelte';
     import Editor from './Editor.svelte';
+    import Settings from './Settings.svelte';
     import RemoteFiles from './RemoteFiles.svelte';
     import RestoreVersions from './RestoreVersions.svelte';
     import {deviceName, sharedFolders, serviceHealth} from '../client/devices.mjs';
@@ -18,7 +19,9 @@
     async function copyID() { await navigator.clipboard.writeText(action.device.deviceID); copied = true; }
 </script>
 
-{#if action.type.startsWith('edit-') || action.type.startsWith('add-') || action.type === 'settings'}
+{#if action.type === 'settings' || action.type === 'advanced'}
+    <Settings state={snapshot} {api} {session} {onClose} advanced={action.type === 'advanced'} />
+{:else if action.type.startsWith('edit-') || action.type.startsWith('add-')}
     <Editor {action} state={snapshot} {api} {session} {onClose} />
 {:else if action.type === 'versions'}
     <RestoreVersions {api} folder={action.folder} {onClose} />
