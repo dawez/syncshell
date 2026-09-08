@@ -3,9 +3,10 @@
     import Dialog from './Dialog.svelte';
     let {kind, state: snapshot, session, onClose} = $props();
     const locale = getContext('locale');
+    const major = $derived(snapshot.upgradeInfo?.majorNewer);
     const started = untrack(() => snapshot.system.startTime);
     let phase = $state('confirm'), error = $state('');
-    const title = $derived(error ? 'Error' : phase === 'confirm' ? 'Upgrade' : kind === 'shutdown' ? 'Shutdown Complete' : 'Restarting');
+    const title = $derived(error ? 'Error' : phase === 'confirm' ? major ? 'Major Upgrade' : 'Upgrade' : kind === 'shutdown' ? 'Shutdown Complete' : 'Restarting');
     onMount(() => { if (kind !== 'upgrade') apply(); });
     $effect(() => {
         if (phase !== 'confirm' && started && snapshot.online && snapshot.system.startTime !== started) onClose();
@@ -21,9 +22,9 @@
         } catch (value) { error = value.message; }
     }
 </script>
-<Dialog {title} status={error ? 'danger' : phase === 'confirm' ? 'warning' : kind === 'shutdown' ? 'success' : 'info'} icon={kind === 'shutdown' && phase === 'waiting' ? 'fas fa-power-off' : 'fas fa-hourglass-half'} {onClose} onCancel={() => { if (phase === 'confirm' || error) onClose(); }}>
+<Dialog {title} status={error ? 'danger' : phase === 'confirm' ? major ? 'danger' : 'warning' : kind === 'shutdown' ? 'success' : 'info'} icon={kind === 'shutdown' && phase === 'waiting' ? 'fas fa-power-off' : 'fas fa-hourglass-half'} {onClose} onCancel={() => { if (phase === 'confirm' || error) onClose(); }}>
     {#if error}<p role="alert">{error}</p>
-    {:else if phase === 'confirm'}<p>{locale.t('Are you sure you want to upgrade?')}</p><p><a href={'https://github.com/syncthing/syncthing/releases/tag/' + encodeURIComponent(snapshot.upgradeInfo?.latest || '')} target="_blank" rel="noreferrer">{locale.t('Release Notes')}</a></p>
+    {:else if phase === 'confirm'}{#if major}<p>{locale.t('This is a major version upgrade.')} {locale.t('A new major version may not be compatible with previous versions.')} {locale.t('Please consult the release notes before performing a major upgrade.')}</p>{:else}<p>{locale.t('Are you sure you want to upgrade?')}</p>{/if}<p><a href={'https://github.com/syncthing/syncthing/releases/tag/' + encodeURIComponent(snapshot.upgradeInfo?.latest || '')} target="_blank" rel="noreferrer">{locale.t('Release Notes')}</a></p>
     {:else if kind === 'shutdown'}<p role="status">{locale.t(phase === 'working' ? 'Please wait' : 'Syncthing has been shut down.')}</p>
     {:else}<p role="status">{locale.t('Syncthing is restarting.')} {locale.t('Please wait')}...</p>{/if}
     {#snippet footer()}

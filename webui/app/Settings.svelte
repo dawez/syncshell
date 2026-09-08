@@ -1,6 +1,7 @@
 <script>
     import {getContext, onMount, untrack} from 'svelte';
     import Dialog from './Dialog.svelte';
+    import UsageReport from './UsageReport.svelte';
     import Editor from './Editor.svelte';
     import FormFields from './FormFields.svelte';
     import {copy, setValue} from '../client/edit.mjs';
@@ -45,10 +46,8 @@
         try { update('gui.apiKey', (await api.get('svc/random/string', {length: 32})).random); }
         catch (value) { error = value.message; }
     }
-    async function preview() {
-        try { report = await api.get('svc/report', {version: draft.options.urAccepted > 0 ? draft.options.urAccepted : snapshot.system.urVersionMax}); }
-        catch (value) { error = value.message; }
-    }
+    function preview() { report = true; }
+
 </script>
 <Dialog title={advanced ? 'Advanced Configuration' : 'Settings'} status={advanced ? 'danger' : 'default'} icon="fas fa-cog" large onClose={onClose} onCancel={close}>
     <form bind:this={form} onsubmit={event => { event.preventDefault(); save(); }}>
@@ -90,5 +89,5 @@
     {#snippet footer()}<button class="btn btn-primary btn-sm" disabled={busy} onclick={save}>{locale.t('Save')}</button><button class="btn btn-default btn-sm" disabled={busy} onclick={close}>{locale.t('Close')}</button>{/snippet}
 </Dialog>
 {#if nested}<Editor action={nested} state={snapshot} {api} {session} onSaved={(value, lines) => { draft = setValue(draft, 'defaults.' + (nested.folder ? 'folder' : 'device'), value); if (nested.folder) draft = setValue(draft, 'defaults.ignores.lines', lines); }} onClose={() => { nested = null; }} />{/if}
-{#if report}<Dialog title="Anonymous Usage Reporting" large onClose={() => { report = null; }}><pre>{JSON.stringify(report, null, 2)}</pre></Dialog>{/if}
+{#if report}<UsageReport {api} {session} state={snapshot} onClose={() => { report = null; }} />{/if}
 {#if discard}<Dialog title="Discard Changes" onClose={() => { discard = false; }}><p>{locale.t('Discard unsaved changes?')}</p>{#snippet footer()}<button class="btn btn-warning" onclick={onClose}>{locale.t('Discard Changes')}</button><button class="btn btn-default" onclick={() => { discard = false; }}>{locale.t('Cancel')}</button>{/snippet}</Dialog>{/if}

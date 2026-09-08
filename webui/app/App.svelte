@@ -4,6 +4,8 @@
     import {createSession, initialState} from '../client/session.mjs';
     import {createLocale, translator} from '../client/locale.mjs';
     import {grouped, deviceName} from '../client/devices.mjs';
+    import UsageReport from './UsageReport.svelte';
+    import {needsUsageConsent} from '../client/reports.mjs';
     import {notices} from '../client/notices.mjs';
     import Folder from './Folder.svelte';
     import Device from './Device.svelte';
@@ -99,7 +101,7 @@
                 <li><a href="#advanced" onclick={event => { event.preventDefault(); openAction({type: 'advanced'}); }}>{locale.t('Advanced')}</a></li>
                 <li><a href="#identification" onclick={event => { event.preventDefault(); openAction({type: 'identification', device: self}); }}>{locale.t('Show ID')}</a></li>
                 <li><a href="#logs" onclick={event => { event.preventDefault(); openAction({type: 'logs'}); }}>{locale.t('Logs')}</a></li>
-                {#if state.upgradeInfo?.newer}<li><a href="#upgrade" onclick={event => { event.preventDefault(); openAction({type: 'upgrade'}); }}>{locale.t('Upgrade')} {state.upgradeInfo.latest}</a></li>{/if}
+                {#if state.upgradeInfo?.newer || state.upgradeInfo?.majorNewer}<li><a href="#upgrade" onclick={event => { event.preventDefault(); openAction({type: 'upgrade'}); }}>{locale.t('Upgrade')} {state.upgradeInfo.latest}</a></li>{/if}
                 <li><a href="rest/debug/support" target="_blank">{locale.t('Support Bundle')}</a></li>
                 {#if state.config.gui?.user || state.config.gui?.authMode === 'ldap'}<li><a href="#logout" onclick={async event => { event.preventDefault(); await api.post('noauth/auth/logout', {}); location.reload(); }}>{locale.t('Log Out')}</a></li>{/if}
                 <li><a href="#restart" onclick={event => { event.preventDefault(); openAction({type: 'restart'}); }}>{locale.t('Restart')}</a></li>
@@ -151,3 +153,5 @@
     {/if}
 </main>
 {#if action}{#key action}<ActionDialog {action} {state} {api} {session} onClose={() => { action = null; }} />{/key}{/if}
+
+{#if needsUsageConsent(state)}<UsageReport {api} {session} {state} consent onClose={() => {}} />{/if}
