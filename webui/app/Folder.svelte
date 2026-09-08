@@ -71,7 +71,7 @@
                         </Field>
                     {/each}
                     {#if info?.needTotalItems > 0}
-                        <Field label="Out of Sync Items"><a href="#needed" onclick={event => { event.preventDefault(); itemsKind = 'need'; }}>
+                        <Field label="Out of Sync Items" icon="fas fa-fw fa-cloud-download-alt" help="Items this device still needs to synchronize with other devices. The size counts whole files; reusing existing data can reduce the amount actually downloaded. Click the value to see the items."><a href="#needed" onclick={event => { event.preventDefault(); itemsKind = 'need'; }}>
                             {compactNumber(info.needTotalItems)} {locale.t('items')}, ~{unitPrefixed(info.needBytes, true)}B</a></Field>
                     {/if}
                     {#if !folder.paused && info?.state && folder.ignoreDelete}
