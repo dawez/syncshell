@@ -7,6 +7,7 @@
     import {fieldHelp} from '../client/field-help.mjs';
     import Tooltip from './Tooltip.svelte';
     import IdentityControls from './IdentityControls.svelte';
+    import SharingEntry from './SharingEntry.svelte';
     import {deviceName} from '../client/devices.mjs';
     let {action, state: snapshot, api, session, onClose, onSaved} = $props();
     const locale = getContext('locale');
@@ -27,6 +28,7 @@
     let loadedIgnores = $state(false);
     let saved = false;
     let form;
+    let passwords = $state(Object.fromEntries(untrack(() => (draft.devices || []).map(member => [member.deviceID, member.encryptionPassword || '']))));
     let shares = $state(Object.fromEntries(untrack(() => snapshot.config.folders.map(folder => {
         const member = folder.devices.find(device => device.deviceID === draft.deviceID);
         return [folder.id, {selected: !!member, password: member?.encryptionPassword || ''}];
@@ -74,8 +76,13 @@
         } catch (failure) { error = failure.message; }
         finally { busy = false; }
     }
+    function sharePassword(id, value) {
+        passwords[id] = value;
+        const member = draft.devices.find(member => member.deviceID === id);
+        if (member) member.encryptionPassword = value;
+    }
     function shareDevice(id, selected) {
-        draft.devices = selected ? [...draft.devices, {deviceID: id, encryptionPassword: ''}]
+        draft.devices = selected ? [...draft.devices, {deviceID: id, encryptionPassword: passwords[id] || ''}]
             : draft.devices.filter(device => device.deviceID !== id);
     }
     async function save() {
@@ -132,20 +139,16 @@
         <datalist id="editor-groups">{#each [...new Set(snapshot.config[kind === 'folder' ? 'folders' : 'devices'].map(item => item.group).filter(Boolean))] as group}<option value={group}></option>{/each}</datalist>
         <div class="tab-content">
         {#if tab === 'Sharing'}
-            <div class="folder-actions">{#each [true, false] as select}<button type="button" class="btn btn-link btn-sm" onclick={() => { if (kind === 'folder') { draft.devices = select ? snapshot.config.devices.map(device => draft.devices.find(member => member.deviceID === device.deviceID) || {deviceID: device.deviceID, encryptionPassword: ''}) : draft.devices.filter(member => member.deviceID === snapshot.system.myID); } else { for (const share of Object.values(shares)) share.selected = select; } }}>{locale.t(select ? 'Select All' : 'Deselect All')}</button>{/each}</div>
+            <div class="folder-actions">{#each [true, false] as select}<button type="button" class="btn btn-link btn-sm" onclick={() => { if (kind === 'folder') { draft.devices = select ? snapshot.config.devices.map(device => draft.devices.find(member => member.deviceID === device.deviceID) || {deviceID: device.deviceID, encryptionPassword: passwords[device.deviceID] || ''}) : draft.devices.filter(member => member.deviceID === snapshot.system.myID); } else { for (const share of Object.values(shares)) share.selected = select; } }}>{locale.t(select ? 'Select All' : 'Deselect All')}</button>{/each}</div>
             <p class="help-block">{locale.t(kind === 'folder' ? 'Select additional devices to share this folder with.' : 'Select the folders to share with this device.')}</p>
             {#if kind === 'folder'}
                 {#each snapshot.config.devices.filter(device => device.deviceID !== snapshot.system.myID) as device}
                     {@const member = draft.devices.find(item => item.deviceID === device.deviceID)}
-                    <div class="form-group"><label><input type="checkbox" checked={!!member} onchange={event => shareDevice(device.deviceID, event.currentTarget.checked)}> {deviceName(device)}</label>
-                        {#if member && draft.type !== 'receiveencrypted'}<input class="form-control" type="password" aria-label={locale.t('Encryption Password') + ': ' + deviceName(device)} placeholder={locale.t('Encryption Password')} bind:value={member.encryptionPassword} required={device.untrusted}>{/if}
-                    </div>
+                    <SharingEntry label={deviceName(device)} id={device.deviceID} selected={!!member} password={passwords[device.deviceID] || ''} encrypted={draft.type === 'receiveencrypted'} required={device.untrusted || snapshot.pendingFolders[draft.id]?.offeredBy?.[device.deviceID]?.remoteEncrypted} remoteState={snapshot.completion[device.deviceID]?.[draft.id]?.remoteState} onSelected={value => shareDevice(device.deviceID,value)} onPassword={value => sharePassword(device.deviceID,value)} />
                 {/each}
             {:else}
                 {#each snapshot.config.folders as folder}
-                    <div class="form-group"><label><input type="checkbox" bind:checked={shares[folder.id].selected}> {folder.label || folder.id}</label>
-                        {#if shares[folder.id].selected && folder.type !== 'receiveencrypted'}<input class="form-control" type="password" aria-label={locale.t('Encryption Password') + ': ' + (folder.label || folder.id)} placeholder={locale.t('Encryption Password')} bind:value={shares[folder.id].password} required={draft.untrusted}>{/if}
-                    </div>
+                    <SharingEntry label={folder.label || folder.id} id={folder.id} selected={shares[folder.id].selected} password={shares[folder.id].password} encrypted={folder.type === 'receiveencrypted'} required={draft.untrusted || snapshot.pendingFolders[folder.id]?.offeredBy?.[draft.deviceID]?.remoteEncrypted} remoteState={snapshot.completion[draft.deviceID]?.[folder.id]?.remoteState} onSelected={value => { shares[folder.id].selected = value; }} onPassword={value => { shares[folder.id].password = value; }} />
                 {/each}
             {/if}
         {:else if tab === 'Ignore Patterns'}

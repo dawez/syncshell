@@ -1,4 +1,5 @@
 <script>
+    import ShareStatus from './ShareStatus.svelte';
     import {recoveryActions, managementActions} from '../client/management.mjs';
     import {getContext} from 'svelte';
     import {folderStatus, folderClass, folderStateClass, folderStateDetails, syncPercentage, progressPercentage}
@@ -134,7 +135,7 @@
                     <button class="btn btn-sm btn-default dropdown-toggle" aria-expanded={sharingOpen} disabled={!folder.devices.some(device => device.deviceID !== snapshot.system.myID)} onclick={() => { sharingOpen = !sharingOpen; }}><span class="fas fa-share-alt"></span> {locale.t('Shared')} <span class="caret"></span></button>
                     <ul class="dropdown-menu">{#each folder.devices.filter(device => device.deviceID !== snapshot.system.myID) as member}
                         {@const device = snapshot.config.devices.find(item => item.deviceID === member.deviceID)}
-                        <li><a href="#edit-device" onclick={event => { event.preventDefault(); sharingOpen = false; if (device) onAction({type: 'edit-device', device}); }}>{device?.name || member.deviceID.slice(0, 7)}</a></li>
+                        <li><a href="#edit-device" onclick={event => { event.preventDefault(); sharingOpen = false; if (device) onAction({type: 'edit-device', device}); }}>{device?.name || member.deviceID.slice(0, 7)} <ShareStatus encrypted={folder.type === 'receiveencrypted' || !!member.encryptionPassword} remoteState={snapshot.completion[member.deviceID]?.[folder.id]?.remoteState} /></a></li>
                     {/each}</ul>
                 </div>
                 <button class="btn btn-sm btn-default" onclick={() => session.setPaused('folders', folder.id, !folder.paused).catch(() => {})}><span class="fas fa-{folder.paused ? 'play' : 'pause'}"></span> {locale.t(folder.paused ? 'Resume' : 'Pause')}</button>

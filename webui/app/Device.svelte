@@ -1,4 +1,5 @@
 <script>
+    import ShareStatus from './ShareStatus.svelte';
     import {getContext, untrack} from 'svelte';
     import {deviceName, sharedFolders, deviceStatus, deviceLabels, deviceIcons, deviceColor,
         connectionType, connectionLabels, connectionIcons, lastSeenDays, addressError, remoteGui,
@@ -132,7 +133,7 @@
             <button class="btn btn-sm btn-default" onclick={() => openAction('identification')}><span class="fas fa-qrcode"></span>&nbsp;{locale.t('Identification')}</button>
             {#if folders.length}<div class="dropup folder-sharing remote-folders" class:open={foldersOpen}>
                 <button class="btn btn-sm btn-default dropdown-toggle" aria-expanded={foldersOpen} onclick={() => { foldersOpen = !foldersOpen; }}><span class="fas fa-folder"></span>&nbsp;{locale.t('Folders')} <span class="caret"></span></button>
-                <ul class="dropdown-menu">{#each folders as folder}<li><a href="#folder-sharing" onclick={event => { event.preventDefault(); foldersOpen = false; onAction({type: 'edit-folder', folder, tab: 'sharing'}); }}>{folder.label || folder.id}</a></li>{/each}</ul>
+                <ul class="dropdown-menu">{#each folders as folder}<li><a href="#folder-sharing" onclick={event => { event.preventDefault(); foldersOpen = false; onAction({type: 'edit-folder', folder, tab: 'sharing'}); }}>{folder.label || folder.id} <ShareStatus encrypted={folder.type === 'receiveencrypted' || !!folder.devices.find(member => member.deviceID === device.deviceID)?.encryptionPassword} remoteState={snapshot.completion[device.deviceID]?.[folder.id]?.remoteState} /></a></li>{/each}</ul>
             </div>{/if}
             <span class="pull-right">
                 {#if device.remoteGUIPort > 0}<a class="btn btn-sm btn-default" href={gui || undefined} aria-disabled={!gui}><span class="fas fa-desktop"></span>&nbsp;{locale.t('Remote GUI')}</a>{/if}
