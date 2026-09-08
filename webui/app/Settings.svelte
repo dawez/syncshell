@@ -69,7 +69,7 @@
                 <FormFields {draft} {fields} onChange={update} />
                 {#if tab === 'GUI' && snapshot.system.guiAddressOverridden}<p class="text-warning">{locale.t('The GUI address is overridden by startup options. Changes here will not take effect while the override is in place.')}</p>{/if}
                 {#if tab === 'General'}
-                    <label for="settings-api-key">{locale.t('API Key')}</label><div class="input-group"><input id="settings-api-key" class="form-control" type="password" readonly value={draft.gui.apiKey}><span class="input-group-btn"><button type="button" class="btn btn-default" onclick={generateKey}>{locale.t('Generate')}</button></span></div>
+                    <label for="settings-api-key">{locale.t('API Key')}</label><div class="input-group"><input id="settings-api-key" class="form-control" type="text" readonly value={draft.gui.apiKey}><span class="input-group-btn"><button type="button" class="btn btn-default" onclick={generateKey}>{locale.t('Generate')}</button></span></div>
                     <div class="form-group"><label for="settings-usage">{locale.t('Anonymous Usage Reporting')}</label> <button type="button" class="btn btn-link btn-sm" onclick={preview}>{locale.t('Preview')}</button>
                         {#if mode === 'candidate' || snapshot.version.isCandidate}<p>{locale.t('Usage reporting is always enabled for candidate releases.')}</p>
                         {:else}<select id="settings-usage" class="form-control" bind:value={draft.options.urAccepted}>
