@@ -1,0 +1,12 @@
+{
+  "name": "syncshell-webui-angular",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "angular": "1.3.20",
+    "vite": "8.2.2"
+  }
+}

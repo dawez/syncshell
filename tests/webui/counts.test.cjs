@@ -4,7 +4,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 let compact;
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,
-    '../webui/modern/syncthing/core/compactNumberFilter.js'), 'utf8'), {
+    '../../webui/modern/syncthing/core/compactNumberFilter.js'), 'utf8'), {
     angular: {module: () => ({filter: (_, factory) => { compact = factory(); }})}
 });
 for (const [input, expected] of [
@@ -20,7 +20,7 @@ for (const [input, expected] of [
 console.log('compact count boundaries passed');
 
 const app = fs.readFileSync(path.join(__dirname,
-    '../webui/modern/syncthing/app.js'), 'utf8');
+    '../../webui/modern/syncthing/app.js'), 'utf8');
 const units = {};
 vm.runInNewContext(app.slice(app.indexOf('function unitPrefixed(')), units);
 for (const [input, expected] of [
