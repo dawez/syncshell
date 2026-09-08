@@ -1,6 +1,8 @@
 <script>
     import {getContext} from 'svelte';
     import Dialog from './Dialog.svelte';
+    import About from './About.svelte';
+    import IdentityControls from './IdentityControls.svelte';
     import ServiceDialog from './ServiceDialog.svelte';
     import Logs from './Logs.svelte';
     import Editor from './Editor.svelte';
@@ -18,8 +20,6 @@
         return !completion || completion.needItems + completion.needDeletes > 0;
     }) : []);
     const friendly = id => deviceName(snapshot.config.devices.find(device => device.deviceID.startsWith(id || '\0'))) || id || locale.t('Unknown');
-    let copied = $state(false);
-    async function copyID() { await navigator.clipboard.writeText(action.device.deviceID); copied = true; }
 </script>
 
 {#if ['restart', 'shutdown', 'upgrade'].includes(action.type)}
@@ -35,17 +35,12 @@
 {:else if action.type === 'versions'}
     <RestoreVersions {api} folder={action.folder} {onClose} />
 {:else if action.type === 'about'}
-    <Dialog title="About" icon="fas fa-info-circle" {onClose}>
-        <h3>Syncshell Modern / Omarchy UI</h3>
-        <p>Based on Syncthing, by the Syncthing authors and community.</p>
-        <p>Syncthing {snapshot.version.version}</p>
-        <p><a href="https://github.com/omarchy-QOL/syncshell" target="_blank" rel="noreferrer">Syncshell</a> · <a href="https://syncthing.net" target="_blank" rel="noreferrer">Syncthing</a> · <a href="LICENSE.syncthing" target="_blank">Mozilla Public License 2.0</a></p>
-    </Dialog>
+    <About {api} version={snapshot.version} {onClose} />
 {:else if action.type === 'identification'}
     <Dialog title={locale.t('Device Identification') + ' - ' + deviceName(action.device)} large status="info" icon="fas fa-qrcode" {onClose}>
         <div class="text-center"><div class="well well-sm text-monospace"><strong>{action.device.deviceID}</strong></div>
             <img class="img-thumbnail" src={'qr/?text=' + encodeURIComponent(action.device.deviceID)} height="328" width="328" alt={locale.t('QR code')}>
-            <div class="btn-group-vertical"><button class="btn btn-default" onclick={copyID}><span class="fa fa-clone"></span> {locale.t(copied ? 'Copied!' : 'Copy')}</button></div>
+            <IdentityControls device={action.device} {api} />
         </div>
     </Dialog>
 {:else if action.type === 'listeners' || action.type === 'discovery'}

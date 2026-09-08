@@ -6,6 +6,7 @@
     import {folderPath, updateEditor, editorFieldState, newXattrEntry, xattrDefault, xattrHint, overlappingPath} from '../client/editor-behavior.mjs';
     import {fieldHelp} from '../client/field-help.mjs';
     import Tooltip from './Tooltip.svelte';
+    import IdentityControls from './IdentityControls.svelte';
     import {deviceName} from '../client/devices.mjs';
     let {action, state: snapshot, api, session, onClose, onSaved} = $props();
     const locale = getContext('locale');
@@ -154,6 +155,7 @@
                 <p>{locale.t('Patterns are applied before the folder starts synchronizing.')}</p>
             {:else}<textarea class="form-control" rows="12" aria-label={locale.t('Ignore Patterns')} bind:value={ignores} disabled={draft.type === 'receiveencrypted' || !loadedIgnores}></textarea>{/if}
         {:else}
+            {#if kind === 'device' && tab === 'General' && !defaults}<IdentityControls device={draft} {api} />{/if}
             {#each fields as field}
                 <div class="form-group">
                     {#if field.type === 'checkbox'}<label><input type="checkbox" checked={field.checked ?? !!getValue(draft, field.path)} disabled={field.disabled} onchange={event => change(field.path, changedValue(field, event.currentTarget))}> {locale.t(field.label)}</label>
