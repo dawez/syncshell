@@ -2,20 +2,26 @@
     import {getContext} from 'svelte';
     import Pagination from './Pagination.svelte';
     import Dialog from './Dialog.svelte';
+    import TransferProgress from './TransferProgress.svelte';
+    import {needIcons} from '../client/transfer.mjs';
     import Tooltip from './Tooltip.svelte';
     import {itemRoutes, itemTitles, pageItems} from '../client/items.mjs';
     import {unitPrefixed} from '../client/format.mjs';
-    let {api, folder, kind, total, onClose} = $props();
+    let {api, folder, kind, total: totalInput, revision: revisionInput = 0, progress = {}, progressEnabled = false, onClose} = $props();
     const locale = getContext('locale');
+    const folderID = $derived(folder.id);
+    const total = $derived(totalInput);
+    const revision = $derived(revisionInput);
     let page = $state(1);
     let perpage = $state(10);
     let items = $state([]);
     let error = $state('');
     let loading = $state(false);
     $effect(() => {
+        revision; total;
         const controller = new AbortController();
         loading = true;
-        api.get(itemRoutes[kind], {folder: folder.id, page, perpage}, controller.signal)
+        api.get(itemRoutes[kind], {folder: folderID, page, perpage}, controller.signal)
             .then(data => { items = pageItems(kind, data); error = ''; })
             .catch(failure => { if (!controller.signal.aborted) error = failure.message; })
             .finally(() => { if (!controller.signal.aborted) loading = false; });
@@ -37,10 +43,11 @@
         <p>{locale.t(folder.type === 'receiveencrypted' ? 'The following unexpected items were found.' : 'The following items were changed locally.')}</p>
     {/if}
     {#if error}<p role="alert" class="text-danger">{error}</p>{/if}
-    <table class="table table-striped table-condensed" aria-busy={loading}><tbody>
+    {#if kind === 'need' && progressEnabled}<TransferProgress legend />{/if}
+    <table class="table table-striped table-condensed port-items" aria-busy={loading}><tbody>
         {#each items as file}
             <tr>
-                {#if kind === 'need'}<td class="small-data">{file.action}</td>{/if}
+                {#if kind === 'need'}<td class="small-data"><span aria-hidden="true" class={needIcons[file.action]}></span> {locale.t(file.action)}</td>{/if}
                 <td class="word-break-all">
                     {#if kind === 'need'}
                         {#if file.type === 'queued'}
@@ -50,7 +57,7 @@
                         <Tooltip label={file.name} text={file.name} triggerText={file.name.split('/').at(-1)} />
                     {:else}{file.path || file.name}{/if}
                 </td>
-                <td>{kind === 'failed' ? file.error : file.type === 'DIRECTORY' ? '' : unitPrefixed(file.size, true) + 'B'}</td>
+                <td>{#if kind === 'need' && file.type === 'progress' && file.action === 'Sync' && progress[file.name]}<TransferProgress progress={progress[file.name]} />{:else}{kind === 'failed' ? file.error : file.size > 0 ? unitPrefixed(file.size, true) + 'B' : ''}{/if}</td>
             </tr>
         {/each}
     </tbody></table>

@@ -148,5 +148,5 @@
     {/if}
 </div>
 {#if itemsKind}
-    <ItemsDialog {api} {folder} kind={itemsKind} total={itemsKind === 'need' ? info.needTotalItems : itemsKind === 'failed' ? info.pullErrors : info.receiveOnlyTotalItems} onClose={() => { itemsKind = ''; }} />
+    <ItemsDialog {api} {folder} kind={itemsKind} revision={snapshot.itemsRevision[folder.id] || 0} progress={snapshot.downloadProgress[folder.id] || {}} progressEnabled={snapshot.config.options.progressUpdateIntervalS > 0 && folder.type !== 'receiveencrypted'} total={itemsKind === 'need' ? info.needTotalItems : itemsKind === 'failed' ? info.pullErrors : info.receiveOnlyTotalItems} onClose={() => { itemsKind = ''; }} />
 {/if}

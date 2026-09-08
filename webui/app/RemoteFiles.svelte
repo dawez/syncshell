@@ -5,10 +5,13 @@
     import Pagination from './Pagination.svelte';
     let {api, folder, device, state: snapshot, single} = $props();
     const locale = getContext('locale');
+    const folderID = $derived(folder.id), deviceID = $derived(device.deviceID);
     let page = $state(1), perpage = $state(10), files = $state([]), error = $state('');
+    const revision = $derived(snapshot.completion[device.deviceID]?.[folder.id]?.needItems + ':' + snapshot.completion[device.deviceID]?.[folder.id]?.needBytes);
     $effect(() => {
+        revision;
         const controller = new AbortController();
-        api.get('db/remoteneed', {folder: folder.id, device: device.deviceID, page, perpage}, controller.signal)
+        api.get('db/remoteneed', {folder: folderID, device: deviceID, page, perpage}, controller.signal)
             .then(data => { files = data.files || []; }).catch(failure => { if (!controller.signal.aborted) error = failure.message; });
         return () => controller.abort();
     });
